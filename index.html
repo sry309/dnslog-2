@@ -1,0 +1,11 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost');
+  socket.on('randomDomain', function (data) {
+    console.log(data.domain);
+    socket.emit('my other event', { my: 'data' });
+  });
+  socket.on('dnslog',function(data){
+      console.log(data.dnslog);
+  });
+</script>

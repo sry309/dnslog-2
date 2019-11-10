@@ -16,7 +16,9 @@
   },
   "dependencies": {
     "bunyan": "0.7.0",
-    "ipaddr.js": "0.1.1"
+    "express": "^4.17.1",
+    "ipaddr.js": "0.1.1",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "nodeunit": "0.9.0"

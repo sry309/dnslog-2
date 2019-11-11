@@ -75,8 +75,8 @@
 	}
 	function getDnslog(){
 		var socketUrl = location.protocol + "//" + location.host;
-		if(typeof(socket) !== "undefined" && socket !== ""){
-			delete socket;console.log('delete');
+		if(typeof(socket) !== "undefined"){
+			socket.destroy();console.log('delete');
 		}
 		socket = io.connect(socketUrl);
 		socket.on('randomDomain', function (data) {

@@ -4,6 +4,7 @@
 	<title>DNSLOG</title>
 	<script src="/socket.io/socket.io.js"></script>
 	<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">  
+	<link href="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/css/alertify.css" rel="stylesheet">
 	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
 	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/js/alertify.js"></script>
@@ -16,6 +17,7 @@
 	</div>
 	<div>
 		<ul class="nav navbar-nav">
+			<li class=""><a href="#">REBINDING(开发中)</a></li>
 			<li class=""><a href="javascript:help();">使用方法</a></li>
 			<li><a href="https://github.com/hackit-me/dnslog" target="__blank">开放源代码</a></li>
 <!-- 			<li class="dropdown">
@@ -46,13 +48,14 @@
 <div id="footer" class="container">
 <nav class="navbar navbar-default navbar-fixed-bottom">
     <div class="navbar-inner navbar-content-center">
-        <p class="text-muted credit" style="padding: 10px;text-align: center;">
+        <p class="text-muted credit" style="padding-top: 14px;text-align: center;">
             Copyright © 2019 dnslog.io All Rights Reserved.
         </p>
     </div>
 </nav>
 <script>
-	alertify.parent(document.getElementById("footer"));
+	alertify.parent(document.body);
+	alertify.logPosition('top center');
 	var logEle = document.getElementById("log");
 	function copy(){
 		flash();
@@ -80,6 +83,7 @@
 			console.log(data.dnslog);
 			log(currentTime());
 			log("\tGet DnsLog: " + data.dnslog);
+			alertify.log("\tGet DnsLog: " + data.dnslog);
 		});
 	}
     function copyValue(val){
@@ -89,7 +93,7 @@
 	    temp.select(); // 选择对象
 	    document.execCommand("Copy"); // 执行浏览器复制命令
 	    temp.style.display='none';
-    	alertify.log("Copy "+val+" success!");
+    	alertify.success("Copy <font style='color:red;'>"+val+"</font> success!");
 	    console.log('复制成功');
 	}
 	function flash(){

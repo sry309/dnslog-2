@@ -56,11 +56,10 @@
 		  .confirm("点击按钮获取随机域名（拷贝至剪贴板），去其他地方触发后可到本页面查看记录", function (ev) {
 		      ev.preventDefault();
 		      alertify.success("OK");
-
 		  });
 	}
 	function getDnslog(){
-		var socket = io.connect('http://dnslog.io');
+		var socket = io.connect('wss://dnslog.io');
 		socket.on('randomDomain', function (data) {
 			console.log(data.domain);
 			copyValue(data.domain);

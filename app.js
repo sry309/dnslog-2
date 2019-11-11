@@ -50,7 +50,9 @@ server.on('query', function(query) {
 		if(domain.split('.').length > 3 ){
 			var qdomain = domain.split('.').slice(-4).join('.');
 			console.log(qdomain);
-			gsocket[qdomain].emit('dnslog',{dnslog:domain+" from "+query._client.address});	
+			if(typeof(gsocket[qdomain])!=="undefined"){
+				gsocket[qdomain].emit('dnslog',{dnslog:domain+" from "+query._client.address});	
+			}
 		}
 		var record = new named.ARecord('8.8.8.8');
 		query.addAnswer(domain, record, ttl);

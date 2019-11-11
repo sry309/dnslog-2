@@ -9,17 +9,55 @@
 	<script src="https://cdn.rawgit.com/alertifyjs/alertify.js/v1.0.10/dist/js/alertify.js"></script>
 </head>
 <body>
-<button class="btn btn-primary btn-lg" onclick="copy();" style="margin-left:200px;margin-top:150px;">Copy A Random Domain</button>
+	<nav class="navbar navbar-default" role="navigation">
+	<div class="container-fluid">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="#">DNSLOG</a>
+	</div>
+	<div>
+		<ul class="nav navbar-nav">
+			<li class=""><a href="javascript:help();">使用方法</a></li>
+			<li><a href="https://github.com/hackit-me/dnslog" target="__blank">开放源代码</a></li>
+<!-- 			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					Java
+					<b class="caret"></b>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="#">jmeter</a></li>
+					<li><a href="#">EJB</a></li>
+					<li><a href="#">Jasper Report</a></li>
+					<li class="divider"></li>
+					<li><a href="#">分离的链接</a></li>
+					<li class="divider"></li>
+					<li><a href="#">另一个分离的链接</a></li>
+				</ul>
+			</li> -->
+		</ul>
+	</div>
+	</div>
+</nav>
+<button class="btn btn-primary btn-lg" onclick="copy();" style="margin-left:200px;margin-top:100px;">Copy A Random Domain</button>
 <div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
 	<div class="container" id="log">
 		
 	</div>
 </div>
 <script>
+	alertify.parent(document.body);
 	var logEle = document.getElementById("log");
 	function copy(){
 		flash();
 		getDnslog();
+	}
+	function help(){
+		alertify
+		  .okBtn("ok")
+		  .confirm("点击按钮获取随机域名（拷贝至剪贴板），去其他地方触发后可到本页面查看记录", function (ev) {
+		      ev.preventDefault();
+		      alertify.success("OK");
+
+		  });
 	}
 	function getDnslog(){
 		var socket = io.connect('http://dnslog.io');
@@ -43,7 +81,6 @@
 	    temp.select(); // 选择对象
 	    document.execCommand("Copy"); // 执行浏览器复制命令
 	    temp.style.display='none';
-	    alertify.parent(document.body);
     	alertify.log("Copy "+val+" success!");
 	    console.log('复制成功');
 	}

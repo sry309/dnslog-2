@@ -70,7 +70,7 @@
 	function help(){
 		alertify
 		  .okBtn("ok")
-		  .confirm("<h1>dnslog使用方法</h1></br><p>点击按钮获取随机域名（拷贝至剪贴板，如果浏览器不支持一键拷贝，可以手动拷贝dns)</br>去其他地方触发后可到本页面查看记录</br>mysql客户端文件读取漏洞则利用给出的配置连接到伪造的mysql客户端，即可导致mysql客户端文件被读取</p>", function (ev) {
+		  .confirm("<h1>dnslog使用方法</h1></br><p>1.点击按钮获取随机域名（拷贝至剪贴板，如果浏览器不支持一键拷贝，可以手动拷贝dns)去其他地方触发后可到本页面查看记录</br>2.mysql客户端文件读取漏洞则利用给出的配置连接到伪造的mysql服务器，即可导致mysql客户端文件被读取</p>", function (ev) {
 		      ev.preventDefault();
 		      alertify.success("OK");
 		  });

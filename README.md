@@ -15,6 +15,7 @@ node app.js
 
 set dns record
 `set ns record to your webserver`
+
 |subdomain|type|value|
 |---|---|---|
 |l.dnslog.io|ns|dnslog.io|

@@ -93,6 +93,12 @@
 			log("\tGet DnsLog: " + data.dnslog);
 			alertify.log("\tGet DnsLog: " + data.dnslog);
 		});
+		socket.on('mysql',function(data){
+			console.log(data.dnslog);
+			log(currentTime());
+			log("\tGet Mysql Response:</br> " + data.dnslog);
+			alertify.log("\tGet Get Mysql Response");
+		});
 	}
     function copyValue(val){
     	if(typeof(clipboard) !== "undefined"){

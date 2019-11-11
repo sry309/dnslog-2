@@ -40,8 +40,9 @@
 	</div>
 	</div>
 </nav>
-<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Get A Random Domain</button>
+<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Get Random Domain</button>
 <button id="copybutton" class="copy-domain btn btn-primary btn-lg" style="margin-top:50px;" disabled>Copy Domain</button>
+<button id="mysql" class=" btn btn-primary btn-lg" onclick="mysql()" style="margin-top:50px;" disabled>Show mysql</button>
 <div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
 	<div class="container" id="log">
 		
@@ -61,6 +62,7 @@
 	var socket;
 	var logEle = document.getElementById("log");
 	var clipboard;
+	var currentDomain;
 	function init(){
 		flash();
 		getDnslog();
@@ -68,10 +70,19 @@
 	function help(){
 		alertify
 		  .okBtn("ok")
-		  .confirm("<h1>dnslog使用方法</h1></br><p>点击按钮获取随机域名（拷贝至剪贴板，如果浏览器不支持一键拷贝，可以手动拷贝dns)</br>去其他地方触发后可到本页面查看记录</p>", function (ev) {
+		  .confirm("<h1>dnslog使用方法</h1></br><p>点击按钮获取随机域名（拷贝至剪贴板，如果浏览器不支持一键拷贝，可以手动拷贝dns)</br>去其他地方触发后可到本页面查看记录</br>mysql客户端文件读取漏洞则利用给出的配置连接到伪造的mysql客户端，即可导致mysql客户端文件被读取</p>", function (ev) {
 		      ev.preventDefault();
 		      alertify.success("OK");
 		  });
+	}
+	function mysql(){
+		alertify
+		  .okBtn("ok")
+		  .confirm("<h1>mysql 文件读取</h1></br><p>使用mysql连接到下面这台服务器即可读取文件：</br>host: ns.dnslog.io</br>name:"+currentDomain+"</br>pass：anypass</p>", function (ev) {
+		      ev.preventDefault();
+		      alertify.success("OK");
+		  });
+
 	}
 	function getDnslog(){
 		var socketUrl = location.protocol + "//" + location.host;
@@ -85,7 +96,9 @@
 			log(currentTime());
 			log("\tGet Domain: " + data.domain);
 			// socket.emit('my other event', { my: 'data' });
+			currentDomain = data.domain.split('.')[0];
 			document.getElementById('copybutton').disabled = false;
+    		document.getElementById('mysql').disabled = false;
 		});
 		socket.on('dnslog',function(data){
 			console.log(data.dnslog);

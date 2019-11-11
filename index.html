@@ -52,7 +52,7 @@
     </div>
 </nav>
 <script>
-	alertify.parent(document.body);
+	alertify.parent(document.getElementById("footer"));
 	var logEle = document.getElementById("log");
 	function copy(){
 		flash();
@@ -67,7 +67,8 @@
 		  });
 	}
 	function getDnslog(){
-		var socket = io.connect('wss://dnslog.io');
+		var socketUrl = location.protocol + "//" + location.host;
+		var socket = io.connect(socketUrl);
 		socket.on('randomDomain', function (data) {
 			console.log(data.domain);
 			copyValue(data.domain);

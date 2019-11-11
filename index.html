@@ -37,12 +37,20 @@
 	</div>
 	</div>
 </nav>
-<button class="btn btn-primary btn-lg" onclick="copy();" style="margin-left:200px;margin-top:100px;">Copy A Random Domain</button>
+<button class="btn btn-primary btn-lg" onclick="copy();" style="margin-left:200px;margin-top:50px;">Copy A Random Domain</button>
 <div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
 	<div class="container" id="log">
 		
 	</div>
 </div>
+<div id="footer" class="container">
+<nav class="navbar navbar-default navbar-fixed-bottom">
+    <div class="navbar-inner navbar-content-center">
+        <p class="text-muted credit" style="padding: 10px;text-align: center;">
+            Copyright © 2019 dnslog.io All Rights Reserved.
+        </p>
+    </div>
+</nav>
 <script>
 	alertify.parent(document.body);
 	var logEle = document.getElementById("log");
@@ -53,7 +61,7 @@
 	function help(){
 		alertify
 		  .okBtn("ok")
-		  .confirm("点击按钮获取随机域名（拷贝至剪贴板），去其他地方触发后可到本页面查看记录", function (ev) {
+		  .confirm("<h1>dnslog使用方法</h1></br><p>点击按钮获取随机域名（拷贝至剪贴板，如果浏览器不支持一键拷贝，可以手动拷贝dns)</br>去其他地方触发后可到本页面查看记录</p>", function (ev) {
 		      ev.preventDefault();
 		      alertify.success("OK");
 		  });

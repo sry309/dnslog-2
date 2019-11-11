@@ -7,7 +7,7 @@ var httpserver = require('http').Server(app);
 var io = require('socket.io')(httpserver);
 var gsocket = {};
 
-httpserver.listen(80);
+httpserver.listen(3000);
 
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
@@ -27,7 +27,7 @@ function getRandomDomain(len){
 	return Math.random().toString(36).substr(13-len)+'.l.dnslog.io';
 }
 
-server.listen(53, '127.0.0.1', function() {
+server.listen(53, '0.0.0.0', function() {
 	console.log('DNS server started on port 53');
 });
 
@@ -53,7 +53,7 @@ server.on('query', function(query) {
 		if(domain.split('.').length > 3 ){
 			var qdomain = domain.split('.').slice(-4).join('.');
 			console.log(qdomain);
-			gsocket[qdomain].emit('dnslog',{dnslog:domain});		
+			gsocket[qdomain].emit('dnslog',{dnslog:domain+" from "+query._client.address});	
 		}
 	}
 });

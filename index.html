@@ -22,7 +22,7 @@
 		getDnslog();
 	}
 	function getDnslog(){
-		var socket = io.connect('http://localhost');
+		var socket = io.connect('http://dnslog.io');
 		socket.on('randomDomain', function (data) {
 			console.log(data.domain);
 			copyValue(data.domain);
@@ -58,6 +58,15 @@
  		day.setDate(day.getDate());
  		return day;
 	}
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?d9679ef04537bb0b7b0d1c28e86f1ca1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
 </script>
 </body>
 </html>

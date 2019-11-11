@@ -8,6 +8,7 @@
 	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
 	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/js/alertify.js"></script>
+	<script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
 </head>
 <body>
 	<nav class="navbar navbar-default" role="navigation">
@@ -39,7 +40,8 @@
 	</div>
 	</div>
 </nav>
-<button class="btn btn-primary btn-lg" onclick="copy();" style="margin-left:200px;margin-top:50px;">Copy A Random Domain</button>
+<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Get A Random Domain</button>
+<button id="copybutton" class="copy-domain btn btn-primary btn-lg" style="margin-top:50px;" disabled>Copy Domain</button>
 <div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
 	<div class="container" id="log">
 		
@@ -56,8 +58,10 @@
 <script>
 	alertify.parent(document.body);
 	alertify.logPosition('top center');
+	var socket;
 	var logEle = document.getElementById("log");
-	function copy(){
+	var clipboard;
+	function init(){
 		flash();
 		getDnslog();
 	}
@@ -71,13 +75,17 @@
 	}
 	function getDnslog(){
 		var socketUrl = location.protocol + "//" + location.host;
-		var socket = io.connect(socketUrl);
+		if(typeof(socket) !== "undefined" && socket !== ""){
+			delete socket;console.log('delete');
+		}
+		socket = io.connect(socketUrl);
 		socket.on('randomDomain', function (data) {
-			console.log(data.domain);
+			// console.log(data.domain);
 			copyValue(data.domain);
 			log(currentTime());
 			log("\tGet Domain: " + data.domain);
 			// socket.emit('my other event', { my: 'data' });
+			document.getElementById('copybutton').disabled = false;
 		});
 		socket.on('dnslog',function(data){
 			console.log(data.dnslog);
@@ -87,14 +95,17 @@
 		});
 	}
     function copyValue(val){
-	    var temp = document.createElement('textarea');
-	    temp.value = val;
-	    document.body.appendChild(temp);
-	    temp.select(); // 选择对象
-	    document.execCommand("Copy"); // 执行浏览器复制命令
-	    temp.style.display='none';
-    	alertify.success("Copy <font style='color:red;'>"+val+"</font> success!");
-	    console.log('复制成功');
+    	if(typeof(clipboard) !== "undefined"){
+    		clipboard.destroy();
+    	}
+    	// console.log(val);
+    	clipboard = new ClipboardJS('.copy-domain', {text: function(){return val}});
+	    clipboard.on('success', function (e) {
+	        alertify.success("Copy <font style='color:red;'>"+e.text+"</font> success!");
+	    });
+	    clipboard.on('error', function(e) {
+	        alertify.error("Copy failed");
+	    });
 	}
 	function flash(){
 		logEle.innerHTML = "";

@@ -24,7 +24,7 @@ io.on('connection', function (socket) {
 });
 
 function getRandomDomain(len){
-	return Math.random().toString(36).substr(13-len)+'.dnslog.io';
+	return Math.random().toString(36).substr(13-len)+'.l.dnslog.io';
 }
 
 server.listen(53, '127.0.0.1', function() {
@@ -46,14 +46,12 @@ server.on('query', function(query) {
 			server.send(query);
 			rebind.times ++;
 		}
-
 	}else{
-		var record = new named.ARecord('127.0.0.1');
+		var record = new named.ARecord('8.8.8.8');
 		query.addAnswer(domain, record, ttl);
 		server.send(query);
-		if(domain.split('.').length > 2 ){
-			var qdomainArr = domain.split('.').slice(-3);
-			var qdomain = qdomainArr[0]+'.'+qdomainArr[1]+'.'+qdomainArr[2];
+		if(domain.split('.').length > 3 ){
+			var qdomain = domain.split('.').slice(-4).join('.');
 			console.log(qdomain);
 			gsocket[qdomain].emit('dnslog',{dnslog:domain});		
 		}

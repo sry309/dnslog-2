@@ -1,11 +1,63 @@
-<script src="/socket.io/socket.io.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>DNSLOG</title>
+	<script src="/socket.io/socket.io.js"></script>
+	<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">  
+	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdn.rawgit.com/alertifyjs/alertify.js/v1.0.10/dist/js/alertify.js"></script>
+</head>
+<body>
+<button class="btn btn-primary btn-lg" onclick="copy();" style="margin-left:200px;margin-top:150px;">Copy A Random Domain</button>
+<div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
+	<div class="container" id="log">
+		
+	</div>
+</div>
 <script>
-  var socket = io.connect('http://localhost');
-  socket.on('randomDomain', function (data) {
-    console.log(data.domain);
-    socket.emit('my other event', { my: 'data' });
-  });
-  socket.on('dnslog',function(data){
-      console.log(data.dnslog);
-  });
+	var logEle = document.getElementById("log");
+	function copy(){
+		flash();
+		getDnslog();
+	}
+	function getDnslog(){
+		var socket = io.connect('http://localhost');
+		socket.on('randomDomain', function (data) {
+			console.log(data.domain);
+			copyValue(data.domain);
+			log(currentTime());
+			log("\tGet Domain: " + data.domain);
+			// socket.emit('my other event', { my: 'data' });
+		});
+		socket.on('dnslog',function(data){
+			console.log(data.dnslog);
+			log(currentTime());
+			log("\tGet DnsLog: " + data.dnslog);
+		});
+	}
+    function copyValue(val){
+	    var temp = document.createElement('textarea');
+	    temp.value = val;
+	    document.body.appendChild(temp);
+	    temp.select(); // 选择对象
+	    document.execCommand("Copy"); // 执行浏览器复制命令
+	    temp.style.display='none';
+	    alertify.parent(document.body);
+    	alertify.log("Copy "+val+" success!");
+	    console.log('复制成功');
+	}
+	function flash(){
+		logEle.innerHTML = "";
+	}
+	function log(val){
+		logEle.innerHTML += val + "</br>";
+	}
+	function currentTime(){
+		var day = new Date();
+ 		day.setDate(day.getDate());
+ 		return day;
+	}
 </script>
+</body>
+</html>

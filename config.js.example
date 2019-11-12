@@ -1,0 +1,6 @@
+var config = {
+	"http_port":80,
+	"mysql_port":3306,
+	"domain":"l.dnslog.io"
+};
+module.exports = config;

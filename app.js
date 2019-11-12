@@ -8,8 +8,11 @@ var io = require('socket.io')(httpserver);
 var gsocket = {};
 var net = require("net");
 var mysqlfile = {};
+var config = require("./config");
 
-httpserver.listen(3000);
+httpserver.listen(config.http_port,function(){
+	console.log('HTTP server started on port '+config.http_port);
+});
 
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
@@ -30,7 +33,7 @@ io.on('connection', function (socket) {
 });
 
 function getRandomDomain(len){
-	return Math.random().toString(36).substr(13-len)+'.l.dnslog.io';
+	return Math.random().toString(36).substr(13-len)+'.'+config.domain;
 }
 
 server.listen(53, '0.0.0.0', function() {
@@ -45,11 +48,11 @@ server.on('query', function(query) {
 			rebind.times = 1;
 			var record = new named.ARecord('127.0.0.1');
 			query.addAnswer(domain, record, 0);
-			server.send(query);
+			query.respond();
 		}else{
 			var record = new named.ARecord('8.8.8.8');
 			query.addAnswer(domain, record, 0);
-			server.send(query);
+			query.respond();
 			rebind.times ++;
 		}
 	}else{
@@ -62,7 +65,7 @@ server.on('query', function(query) {
 		}
 		var record = new named.ARecord('8.8.8.8');
 		query.addAnswer(domain, record, ttl);
-		server.send(query);
+		query.respond();
 	}
 });
 
@@ -97,8 +100,8 @@ var server = net.createServer(function(socket){
                         socket.write(wantfile,'binary');
                         //console.log("send file read request");
                     }else{
-                    	if(typeof(gsocket[username+".l.dnslog.io"])!=="undefined"){
-							gsocket[username+".l.dnslog.io"].emit('mysql',{dnslog:data});	
+                    	if(typeof(gsocket[username+'.'+config.domain])!=="undefined"){
+							gsocket[username+'.'+config.domain].emit('mysql',{dnslog:data});	
 						}
                         socket.end(null,'binary');
                     }
@@ -119,6 +122,6 @@ var server = net.createServer(function(socket){
     });
 })
 /* 获取地址信息 */
-server.listen(3308,function(){
-    console.log("mysql server on 127.0.0.1 3308");
+server.listen(config.mysql_port,function(){
+    console.log("mysql server on "+config.mysql_port);
 })

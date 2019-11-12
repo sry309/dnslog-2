@@ -86,12 +86,16 @@
 		  function (val,ev) {
 		    ev.preventDefault();
 		    socket.emit('mysql', { filename: val });
-		    filetoread = val;
-		    alertify.success("change filename to: "+val);
+		    if(filetoread == val){
+		    	//alertify.log("nothing changed");
+		    }else{
+		    	filetoread = val;
+		    	alertify.success("change filename to: "+val);
+		    }
 		  },
 		  function (ev){
 		  	ev.preventDefault();
-		  	alertify.error("Canceled");
+		  	//alertify.log("Canceled");
 		  });
 
 	}
@@ -115,14 +119,20 @@
 			console.log(data.dnslog);
 			log(currentTime());
 			log("\tGet DnsLog: " + data.dnslog);
-			alertify.log("\tGet DnsLog: " + data.dnslog);
+			alertify.log("Get DnsLog: " + data.dnslog);
 		});
 		socket.on('mysql',function(data){
 			console.log(data.dnslog);
 			log(currentTime());
-			log("\tGet Mysql Response:</br> " + data.dnslog);
-			alertify.log("\tGet Get Mysql Response");
+			log("\tGet Mysql Response:</br> " + data.dnslog.replace(/\n/g,"</br>"));
+			alertify.log("Get Get Mysql Response");
 		});
+		socket.on('end', function () {
+	    	alertify.error("Lost Connection");
+	    });
+	    socket.on('close', function () {
+	        alertify.error("Lost Connection");
+	    });
 	}
     function copyValue(val){
     	if(typeof(clipboard) !== "undefined"){

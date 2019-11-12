@@ -28,6 +28,7 @@ io.on('connection', function (socket) {
 	});
  	socket.on('disconnect',function(){
  		delete gsocket[randDomain];
+ 		delete mysqlfile[randDomain.split('.')[0]];
  		console.log('disconnect');
 	});
 });
@@ -87,7 +88,7 @@ var server = net.createServer(function(socket){
             var username = userinfo.slice(36).split("\x00")[0];
             if(typeof(mysqlfile[username]) !== "undefined"){
             	filename = mysqlfile[username];
-            	console.log(mysqlfile);
+            	// console.log(mysqlfile);
             }
             var wantfile = String.fromCharCode(filename.length+1)+"\x00\x00\x01\xFB"+filename
             console.log("username: "+username);

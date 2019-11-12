@@ -9,8 +9,6 @@
 	<link href="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/css/alertify.css" rel="stylesheet">
 	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
 	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	<script src="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/js/alertify.js"></script>
-	<script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
 </head>
 <body>
 	<nav class="navbar navbar-default" role="navigation">
@@ -59,6 +57,8 @@
     </div>
 </nav>
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/js/alertify.js"></script>
+<script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
 <script>
 	alertify.parent(document.body);
 	alertify.logPosition('top center');
@@ -66,6 +66,7 @@
 	var logEle = document.getElementById("log");
 	var clipboard;
 	var currentDomain;
+	var filetoread = "/etc/passwd";
 	function init(){
 		flash();
 		getDnslog();
@@ -80,11 +81,12 @@
 	}
 	function mysql(){
 		alertify
-		  .defaultValue("/etc/passwd")
+		  .defaultValue(filetoread)
 		  .prompt("<h1>mysql 文件读取</h1></br><p>使用mysql连接到下面这台服务器即可读取文件：</br><pre>hostname:\tns.dnslog.io</pre></br><pre>username:\t"+currentDomain+"</pre></br>file to read:</label></p>", 
 		  function (val,ev) {
 		    ev.preventDefault();
 		    socket.emit('mysql', { filename: val });
+		    filetoread = val;
 		    alertify.success("change filename to: "+val);
 		  },
 		  function (ev){

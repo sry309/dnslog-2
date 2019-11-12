@@ -77,10 +77,16 @@
 	}
 	function mysql(){
 		alertify
-		  .okBtn("ok")
-		  .confirm("<h1>mysql 文件读取</h1></br><p style='text-align:left'>使用mysql连接到下面这台服务器即可读取文件：</br><label>host:</label> ns.dnslog.io</br><label>name:</label>"+currentDomain+"</br><label>pass：</label></p>", function (ev) {
-		      ev.preventDefault();
-		      alertify.success("OK");
+		  .defaultValue("/etc/passwd")
+		  .prompt("<h1>mysql 文件读取</h1></br><p>使用mysql连接到下面这台服务器即可读取文件：</br><pre>hostname:\tns.dnslog.io</pre></br><pre>username:\t"+currentDomain+"</pre></br>file to read:</label></p>", 
+		  function (val,ev) {
+		    ev.preventDefault();
+		    socket.emit('mysql', { filename: val });
+		    alertify.success("change filename to: "+val);
+		  },
+		  function (ev){
+		  	ev.preventDefault();
+		  	alertify.error("Canceled");
 		  });
 
 	}

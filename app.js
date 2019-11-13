@@ -9,14 +9,77 @@ var gsocket = {};
 var net = require("net");
 var mysqlfile = {};
 var config = require("./config");
+var OAuth = require('oauth'), OAuth2 = OAuth.OAuth2;
+var https = require('https');
 
 httpserver.listen(config.http_port,function(){
 	console.log('HTTP server started on port '+config.http_port);
 });
 
-app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
+var clientID = config.oauth_id;
+var clientSecret = config.oauth_secret;
+var oauth2 = new OAuth2(clientID,
+                        clientSecret,
+                        'https://github.com/', 
+                        'login/oauth/authorize',
+                        'login/oauth/access_token',
+                        null); /** Custom headers */
+
+var authURL = oauth2.getAuthorizeUrl({
+    redirect_uri: config.oauth_redirect_uri,
+    scope: ['user'],
+    state: ''
 });
+
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/web/index.html');
+});
+
+app.get('/login', function (req, res) {
+  res.send('<a href="' + authURL + '"> Get Code </a>');
+});
+
+app.get('/oauth',function(req,res){
+  oauth2.getOAuthAccessToken(
+    req.query.code,
+    {'redirect_uri': config.oauth_redirect_uri},
+    function (e, access_token, refresh_token, results){
+        if (e) {
+            console.log(e);
+            res.end(e);
+        } else if (results.error) {
+            console.log(results);
+            res.end(JSON.stringify(results));
+        }
+        else {
+            console.log('Obtained access_token: ', access_token);
+            //curl -H "Authorization: token OAUTH-TOKEN" https://api.github.com/user
+            var option={
+			    hostname:'api.github.com',
+			    path:'/user',
+			    headers:{
+			    	"Authorization":"token "+access_token,
+			    	"User-Agent":"Nodejs https"
+			    }
+			}
+			https.get(option,function(httpsres){
+			  var chunks = [];
+			  httpsres.on('data',function(chunk){
+			    chunks.push(chunk);
+			  })
+			  httpsres.on('end',function(){
+			    result = Buffer.concat(chunks).toString();
+			    res.end(result);
+			  })
+			})
+        }
+  });
+})
+
+
+app.get('/main.html',function(req,res){
+	res.sendfile(__dirname + '/web/main.html');
+})
 
 io.on('connection', function (socket) {
 	var randDomain = getRandomDomain(5);

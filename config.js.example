@@ -2,6 +2,9 @@ var config = {
 	"http_port":80,
 	"mysql_port":3306,
 	"dns_port":53,
-	"domain":"l.dnslog.io"
+	"domain":"l.dnslog.io",
+	"oauth_id":"",
+	"oauth_secret":"",
+	"oauth_redirect_uri":""
 };
 module.exports = config;

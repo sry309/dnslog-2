@@ -11,11 +11,12 @@ var mysqlfile = {};
 var config = require("./config");
 var OAuth = require('oauth'), OAuth2 = OAuth.OAuth2;
 var https = require('https');
+var session = require("express-session");
 
-httpserver.listen(config.http_port,function(){
-	console.log('HTTP server started on port '+config.http_port);
-});
 
+/*
+	HTTP Server
+*/
 var clientID = config.oauth_id;
 var clientSecret = config.oauth_secret;
 var oauth2 = new OAuth2(clientID,
@@ -30,6 +31,13 @@ var authURL = oauth2.getAuthorizeUrl({
     scope: ['user'],
     state: ''
 });
+
+app.use(session({
+        secret: Math.random().toString(36),
+        resave: false,
+        saveUninitialized: true
+        //cookie: { secure: true }   /*secure https这样的情况才可以访问cookie*/
+    }))
 
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/web/index.html');
@@ -69,13 +77,18 @@ app.get('/oauth',function(req,res){
 			  })
 			  httpsres.on('end',function(){
 			    result = Buffer.concat(chunks).toString();
-			    res.end(result);
+			    // res.end(result);
+			    req.session.username = JSON.parse(result)['login'];
+			    res.end("<script>location='/userinfo';</script>")
 			  })
 			})
         }
   });
 })
 
+app.get('/userinfo',function(req,res){
+	res.send(req.session.username);
+})
 
 app.get('/main.html',function(req,res){
 	res.sendfile(__dirname + '/web/main.html');
@@ -96,6 +109,10 @@ io.on('connection', function (socket) {
 	});
 });
 
+httpserver.listen(config.http_port,function(){
+	console.log('HTTP server started on port '+config.http_port);
+});
+
 function getRandomDomain(len){
 	return Math.random().toString(36).substr(13-len)+'.'+config.domain;
 }
@@ -104,6 +121,10 @@ server.listen(config.dns_port, '0.0.0.0', function() {
 	console.log('DNS server started on port '+config.dns_port);
 });
 
+
+/*
+	DNS Server
+*/
 server.on('query', function(query) {
 	var domain = query.name();
 	console.log('DNS Query: %s', domain)
@@ -133,7 +154,9 @@ server.on('query', function(query) {
 	}
 });
 
-/* 创建mysql服务器 */
+/* 
+	MYSQL Server
+*/
 var server = net.createServer(function(socket){
     /* 获取地址信息 */
     //var address = server.address();

@@ -17,6 +17,7 @@
   "dependencies": {
     "bunyan": "0.7.0",
     "express": "^4.17.1",
+    "express-session": "^1.17.0",
     "ipaddr.js": "0.1.1",
     "oauth": "^0.9.15",
     "socket.io": "^2.3.0"

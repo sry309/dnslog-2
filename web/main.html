@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Panel</title>
+	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+var userinfo;
+$.get('/userinfo',function(res){
+	userinfo = JSON.parse(res);
+	if(typeof(userinfo['name']) == 'undefined'){
+		location = "/login";
+	}
+	temp = "<img src='"+userinfo['avatar_url']+"' />" + userinfo['name'];
+	document.write(temp);
+});
+</script>
+
+</body>
+</html>

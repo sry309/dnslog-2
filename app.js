@@ -26,12 +26,6 @@ var oauth2 = new OAuth2(clientID,
                         'login/oauth/access_token',
                         null); /** Custom headers */
 
-var authURL = oauth2.getAuthorizeUrl({
-    redirect_uri: config.oauth_redirect_uri,
-    scope: ['user'],
-    state: ''
-});
-
 app.use(session({
         secret: Math.random().toString(36),
         resave: false,
@@ -40,54 +34,68 @@ app.use(session({
     }))
 
 app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/web/index.html');
+    res.sendfile(__dirname + '/web/index.html');
 });
 
 app.get('/login', function (req, res) {
-  res.send('<a href="' + authURL + '"> Get Code </a>');
+    var randomstate = Math.random().toString(36);
+    var authURL = oauth2.getAuthorizeUrl({
+        redirect_uri: config.oauth_redirect_uri,
+        scope: ['user:email'],
+        state: randomstate
+    });
+    req.session.randomstate = randomstate;
+    res.send('<a href="' + authURL + '"> Get Code </a>');
 });
 
 app.get('/oauth',function(req,res){
-  oauth2.getOAuthAccessToken(
-    req.query.code,
-    {'redirect_uri': config.oauth_redirect_uri},
-    function (e, access_token, refresh_token, results){
-        if (e) {
-            console.log(e);
-            res.end(e);
-        } else if (results.error) {
-            console.log(results);
-            res.end(JSON.stringify(results));
-        }
-        else {
-            console.log('Obtained access_token: ', access_token);
-            //curl -H "Authorization: token OAUTH-TOKEN" https://api.github.com/user
-            var option={
-			    hostname:'api.github.com',
-			    path:'/user',
-			    headers:{
-			    	"Authorization":"token "+access_token,
-			    	"User-Agent":"Nodejs https"
-			    }
-			}
-			https.get(option,function(httpsres){
-			  var chunks = [];
-			  httpsres.on('data',function(chunk){
-			    chunks.push(chunk);
-			  })
-			  httpsres.on('end',function(){
-			    result = Buffer.concat(chunks).toString();
-			    // res.end(result);
-			    req.session.username = JSON.parse(result)['login'];
-			    res.end("<script>location='/userinfo';</script>")
-			  })
-			})
-        }
-  });
+    if(req.query.state !== req.session.randomstate){
+        res.end("csrf");
+    }
+    oauth2.getOAuthAccessToken(
+        req.query.code,
+        {'redirect_uri': config.oauth_redirect_uri},
+        function (e, access_token, refresh_token, results){
+            if (e) {
+                console.log(e);
+                res.end(e);
+            } else if (results.error) {
+                console.log(results);
+                res.end(JSON.stringify(results));
+            }
+            else {
+                console.log('Obtained access_token: ', access_token);
+                //curl -H "Authorization: token OAUTH-TOKEN" https://api.github.com/user
+                var option={
+    			    hostname:'api.github.com',
+    			    path:'/user',
+    			    headers:{
+    			    	"Authorization":"token "+access_token,
+    			    	"User-Agent":"Nodejs https"
+    			    }
+    			}
+    			https.get(option,function(httpsres){
+    			  var chunks = [];
+    			  httpsres.on('data',function(chunk){
+    			    chunks.push(chunk);
+    			  })
+    			  httpsres.on('end',function(){
+    			    result = Buffer.concat(chunks).toString();
+    			    // res.end(result);
+                    var userinfo = JSON.parse(result);
+    			    req.session.username = userinfo['login'];
+                    req.session.avatar_url = userinfo['avatar_url'];
+                    req.session.email = userinfo['email'];
+    			    res.end("<script>location='/main.html';</script>")
+    			  })
+    			})
+            }
+    });
 })
 
 app.get('/userinfo',function(req,res){
-	res.send(req.session.username);
+    var userinfo = {"name":req.session.username,"email":req.session.email,"avatar_url":req.session.avatar_url};
+	res.send(JSON.stringify(userinfo));
 })
 
 app.get('/main.html',function(req,res){

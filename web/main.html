@@ -18,9 +18,19 @@
 	</div>
 	<div>
 		<ul class="nav navbar-nav">
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					Log History
+					<b class="caret"></b>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="javascript:getHistoryLog();">show history from db</a></li>
+					<li><a href="javascript:clearHistoryLog();">clear history from db</a></li>
+				</ul>
+			</li>
 			<li class=""><a href="#">REBINDING(开发中)</a></li>
-			<li class=""><a href="javascript:help();">使用方法</a></li>
-			<li><a href="https://github.com/hackit-me/dnslog" target="__blank">开放源代码</a></li>
+			<li class=""><a href="javascript:help();">help</a></li>
+			<li><a href="https://github.com/hackit-me/dnslog" target="__blank">open source</a></li>
 <!-- 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 					Java
@@ -55,9 +65,10 @@
 	</div>
 	</div>
 </nav>
-<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Get DNS Log</button>
-<button id="copybutton" class="copy-domain btn btn-primary btn-lg" style="margin-top:50px;" disabled>Copy Domain</button>
-<button id="mysql" class=" btn btn-primary btn-lg" onclick="mysql()" style="margin-top:50px;" disabled>Show mysql</button>
+<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Auto refresh</button>
+<button id="copybutton" class="copy-domain btn btn-primary btn-lg" style="margin-top:50px;">Copy Domain</button>
+<button id="mysql" class=" btn btn-primary btn-lg" onclick="mysql()" style="margin-top:50px;" >Show Mysql</button>
+<button class=" btn btn-primary btn-lg" onclick="flash()" style="margin-top:50px;">Clear Screen</button>
 <div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
 	<div class="container" id="log">
 		
@@ -76,6 +87,13 @@
 <script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
 <script>
 	var userinfo;
+	var socket;
+	var logEle = document.getElementById("log");
+	var clipboard;
+	var currentDomain;
+	var filetoread = "/etc/passwd";
+	alertify.parent(document.body);
+	alertify.logPosition('top center');
 	$.get('/userinfo',function(res){
 		userinfo = JSON.parse(res);
 		if(typeof(userinfo['name']) == 'undefined'){
@@ -83,20 +101,13 @@
 		}else{
 			var infotemp = "<img width='25' height='25' src='" + userinfo['avatar_url']+"' />" +  userinfo['name'] + '<b class="caret"></b>';
 			$('#username').html(infotemp);
+		copyValue(userinfo['subdomain']);
+
 		}
 	});
-	alertify.parent(document.body);
-	alertify.logPosition('top center');
-	var socket;
-	var logEle = document.getElementById("log");
-	var clipboard;
-	var currentDomain;
-	var filetoread = "/etc/passwd";
 	function init(){
 		flash();
 		getDnslog();
-		copyValue(userinfo['subdomain']);
-		document.getElementById('copybutton').disabled = false;
 	}
 	function help(){
 		alertify
@@ -107,18 +118,23 @@
 		  });
 	}
 	function mysql(){
+		currentDomain = userinfo['subdomain'].split('.')[0];
 		alertify
 		  .defaultValue(filetoread)
 		  .prompt("<h1>mysql 文件读取</h1></br><p>使用mysql连接到下面这台服务器即可读取文件：</br><pre>hostname:\tns.dnslog.io</pre></br><pre>username:\t"+currentDomain+"</pre></br>file to read:</label></p>", 
 		  function (val,ev) {
 		    ev.preventDefault();
-		    socket.emit('mysql', { filename: val });
-		    if(filetoread == val){
-		    	//alertify.log("nothing changed");
+		    if(typeof(socket) == 'undefined'){
+		    	alertify.error("Auto refresh first!");
 		    }else{
-		    	filetoread = val;
-		    	alertify.success("change filename to: "+val);
-		    }
+			    socket.emit('mysql', { filename: val });
+			    if(filetoread == val){
+			    	//alertify.log("nothing changed");
+			    }else{
+			    	filetoread = val;
+			    	alertify.success("change filename to: "+val);
+			    }
+			}
 		  },
 		  function (ev){
 		  	ev.preventDefault();
@@ -187,6 +203,21 @@
 		$.get('/logout',function(){
 			location.href = "/";
 		});
+	}
+	function getHistoryLog(){
+		$.get('/getdnslog',function(data){
+			var historyLog = JSON.parse(data);
+			for(i=0;i<historyLog.length;i++){
+				log(historyLog[i]['inserttime']);
+				log("From: " + historyLog[i]['ip']);
+				log(historyLog[i]['dnslog']);
+			}
+		})
+	}
+	function clearHistoryLog(){
+		$.get('/cleardnslog',function(data){
+			flash();
+		})
 	}
 </script>
 <script>

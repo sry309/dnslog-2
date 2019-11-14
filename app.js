@@ -49,6 +49,10 @@ app.get('/login', function (req, res) {
     req.session.randomstate = randomstate;
     res.redirect(302,authURL);
 });
+app.get('/logout', function (req, res) {
+    delete req.session.token;
+    res.send('ok');
+});
 
 app.get('/oauth',function(req,res){
     if(req.query.state !== req.session.randomstate){
@@ -141,6 +145,14 @@ app.get('/getdnslog',function(req,res){
         username : req.session.username
     },function(qres){
         res.end(JSON.stringify(qres));
+    })
+})
+
+app.get('/cleardnslog',function(req,res){
+    safeQuery('delete from dnslog_log where userid=(select id from dnslog_user where username= :username)',{
+        username : req.session.username
+    },function(){
+        res.end();
     })
 })
 

@@ -6,3 +6,4 @@ tmp
 nohup.out
 config.js
 test.js
+db/data.db

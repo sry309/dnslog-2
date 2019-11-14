@@ -97,7 +97,7 @@
 	$.get('/userinfo',function(res){
 		userinfo = JSON.parse(res);
 		if(typeof(userinfo['name']) == 'undefined'){
-			location.href = "/login";
+			location.href = "/";
 		}else{
 			var infotemp = "<img width='25' height='25' src='" + userinfo['avatar_url']+"' />" +  userinfo['name'] + '<b class="caret"></b>';
 			$('#username').html(infotemp);

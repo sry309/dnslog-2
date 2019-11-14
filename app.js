@@ -47,7 +47,7 @@ app.get('/login', function (req, res) {
         state: randomstate
     });
     req.session.randomstate = randomstate;
-    res.send('<a href="' + authURL + '"> Get Code </a>');
+    res.redirect(302,authURL);
 });
 
 app.get('/oauth',function(req,res){

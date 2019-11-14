@@ -1,23 +1,202 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>Panel</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>DNSLOG</title>
+	<meta name="keywords" content="dnslog，dnslog平台，mysql客户端文件读取在线测试"/>
+	<meta name="description" content="开源免费DNSLog，mysql文件读取漏洞在线测试平台"/>
+	<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">  
+	<link href="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/css/alertify.css" rel="stylesheet">
 	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
-<script type="text/javascript">
-var userinfo;
-$.get('/userinfo',function(res){
-	userinfo = JSON.parse(res);
-	if(typeof(userinfo['name']) == 'undefined'){
-		location.href = "/login";
-	}else{
-		temp = "<img src='"+userinfo['avatar_url']+"' />" + userinfo['name'];
-		document.write(temp);
+	<nav class="navbar navbar-default" role="navigation">
+	<div class="container-fluid">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="#">Control Panel</a>
+	</div>
+	<div>
+		<ul class="nav navbar-nav">
+			<li class=""><a href="#">REBINDING(开发中)</a></li>
+			<li class=""><a href="javascript:help();">使用方法</a></li>
+			<li><a href="https://github.com/hackit-me/dnslog" target="__blank">开放源代码</a></li>
+<!-- 			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					Java
+					<b class="caret"></b>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="#">jmeter</a></li>
+					<li><a href="#">EJB</a></li>
+					<li><a href="#">Jasper Report</a></li>
+					<li class="divider"></li>
+					<li><a href="#">分离的链接</a></li>
+					<li class="divider"></li>
+					<li><a href="#">另一个分离的链接</a></li>
+				</ul>
+			</li> -->
+		</ul>
+	</div>
+	<div class="pull-right">
+		<ul class="nav navbar-nav">
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" id="username" data-toggle="dropdown">
+					{username}
+				<b class="caret"></b>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="#">用户信息</a></li>
+					<li class="divider"></li>
+					<li><a href="javascript:logout();">退出登录</a></li>
+				</ul>
+			</li> 
+		</ul>
+	</div>
+	</div>
+</nav>
+<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Get DNS Log</button>
+<button id="copybutton" class="copy-domain btn btn-primary btn-lg" style="margin-top:50px;" disabled>Copy Domain</button>
+<button id="mysql" class=" btn btn-primary btn-lg" onclick="mysql()" style="margin-top:50px;" disabled>Show mysql</button>
+<div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
+	<div class="container" id="log">
+		
+	</div>
+</div>
+<div id="footer" class="container">
+<nav class="navbar navbar-default navbar-fixed-bottom">
+    <div class="navbar-inner navbar-content-center">
+        <p class="text-muted credit" style="padding-top: 14px;text-align: center;">
+            Copyright © 2019 dnslog.io All Rights Reserved.
+        </p>
+    </div>
+</nav>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/js/alertify.js"></script>
+<script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
+<script>
+	var userinfo;
+	$.get('/userinfo',function(res){
+		userinfo = JSON.parse(res);
+		if(typeof(userinfo['name']) == 'undefined'){
+			location.href = "/login";
+		}else{
+			var infotemp = "<img width='25' height='25' src='" + userinfo['avatar_url']+"' />" +  userinfo['name'] + '<b class="caret"></b>';
+			$('#username').html(infotemp);
+		}
+	});
+	alertify.parent(document.body);
+	alertify.logPosition('top center');
+	var socket;
+	var logEle = document.getElementById("log");
+	var clipboard;
+	var currentDomain;
+	var filetoread = "/etc/passwd";
+	function init(){
+		flash();
+		getDnslog();
+		copyValue(userinfo['subdomain']);
+		document.getElementById('copybutton').disabled = false;
 	}
-});
-</script>
+	function help(){
+		alertify
+		  .okBtn("ok")
+		  .confirm("<h1>dnslog使用方法</h1></br><p style='text-align:left'>1.点击按钮获取随机域名（拷贝至剪贴板，如果浏览器不支持一键拷贝，可以手动拷贝dns)去其他地方触发后可到本页面查看记录</br>2.mysql客户端文件读取漏洞则利用给出的配置连接到伪造的mysql服务器，即可导致mysql客户端文件被读取</p>", function (ev) {
+		      ev.preventDefault();
+		      alertify.success("OK");
+		  });
+	}
+	function mysql(){
+		alertify
+		  .defaultValue(filetoread)
+		  .prompt("<h1>mysql 文件读取</h1></br><p>使用mysql连接到下面这台服务器即可读取文件：</br><pre>hostname:\tns.dnslog.io</pre></br><pre>username:\t"+currentDomain+"</pre></br>file to read:</label></p>", 
+		  function (val,ev) {
+		    ev.preventDefault();
+		    socket.emit('mysql', { filename: val });
+		    if(filetoread == val){
+		    	//alertify.log("nothing changed");
+		    }else{
+		    	filetoread = val;
+		    	alertify.success("change filename to: "+val);
+		    }
+		  },
+		  function (ev){
+		  	ev.preventDefault();
+		  	alertify.log("Canceled");
+		  });
 
+	}
+	function getDnslog(){
+		var socketUrl = location.protocol + "//" + location.host;
+		if(typeof(socket) !== "undefined"){
+			socket.destroy();console.log('delete');
+		}
+		socket = io.connect(socketUrl);
+		socket.on('randomDomain', function (data) {
+			//
+		});
+		socket.emit('login',{token:userinfo['token']});
+		socket.on('loginstatus',function(data){
+			log(currentTime());
+			log("\t"+data.status);
+		});
+		socket.on('dnslog',function(data){
+			console.log(data.dnslog);
+			log(currentTime());
+			log("\tGet DnsLog: " + data.dnslog);
+			alertify.log("Get DnsLog: " + data.dnslog);
+		});
+		socket.on('mysql',function(data){
+			console.log(data.dnslog);
+			log(currentTime());
+			log("\tGet Mysql Response:</br> " + data.dnslog.replace(/\n/g,"</br>"));
+			alertify.log("Get Get Mysql Response");
+		});
+		socket.on('end', function () {
+	    	alertify.error("Lost Connection");
+	    });
+	    socket.on('close', function () {
+	        alertify.error("Lost Connection");
+	    });
+	}
+    function copyValue(val){
+    	if(typeof(clipboard) !== "undefined"){
+    		clipboard.destroy();
+    	}
+    	// console.log(val);
+    	clipboard = new ClipboardJS('.copy-domain', {text: function(){return val}});
+	    clipboard.on('success', function (e) {
+	        alertify.success("Copy <font style='color:red;'>"+e.text+"</font> success!");
+	    });
+	    clipboard.on('error', function(e) {
+	        alertify.error("Copy failed");
+	    });
+	}
+	function flash(){
+		logEle.innerHTML = "";
+	}
+	function log(val){
+		logEle.innerHTML += val + "</br>";
+	}
+	function currentTime(){
+		var day = new Date();
+ 		day.setDate(day.getDate());
+ 		return day;
+	}
+	function logout(){
+		$.get('/logout',function(){
+			location.href = "/";
+		});
+	}
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?d9679ef04537bb0b7b0d1c28e86f1ca1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
 </body>
 </html>

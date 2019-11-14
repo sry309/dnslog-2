@@ -12,6 +12,8 @@ var config = require("./config");
 var OAuth = require('oauth'), OAuth2 = OAuth.OAuth2;
 var https = require('https');
 var session = require("express-session");
+const Sequelize = require('sequelize');
+const sequelize = new Sequelize('sqlite:db/data.db')
 
 
 /*
@@ -86,7 +88,30 @@ app.get('/oauth',function(req,res){
     			    req.session.username = userinfo['login'];
                     req.session.avatar_url = userinfo['avatar_url'];
                     req.session.email = userinfo['email'];
-    			    res.end("<script>location='/main.html';</script>")
+                    safeQuery('select id from dnslog_user where username= :username',{
+                        username:userinfo['login']
+                    },function(qres){
+                        if(qres.length > 0){
+                            safeQuery('select token from dnslog_user where username= :username',{
+                                username : userinfo['login']
+                            },function(qres){
+                                req.session.token = qres[0]['token'];
+                                res.end("<script>location='/main.html';</script>")
+                            })
+                        }else{
+                            req.session.token = Math.random().toString(36);
+                            safeQuery("insert into dnslog_user (username,email,avatar_url,subdomain,token) values (:username,:email,:avatar_url,:subdomain,:token)",{
+                                username : userinfo['login'],
+                                email : userinfo['email'],
+                                avatar_url : userinfo['avatar_url'],
+                                subdomain : userinfo['login'].toLowerCase() + "." + config.domain,
+                                token : req.session.token
+                            },function(qres){
+                                //insert into table about user's info
+                            })
+                            res.end("<script>location='/main.html';</script>")
+                        }
+                    })
     			  })
     			})
             }
@@ -94,12 +119,29 @@ app.get('/oauth',function(req,res){
 })
 
 app.get('/userinfo',function(req,res){
-    var userinfo = {"name":req.session.username,"email":req.session.email,"avatar_url":req.session.avatar_url};
-	res.send(JSON.stringify(userinfo));
+    if(typeof(req.session.token) == 'undefined'){
+        res.send('{}');
+    }else{
+        safeQuery('select subdomain from dnslog_user where token= :token',{
+            token : req.session.token
+        },function(qres){
+            var userinfo = {"name":req.session.username,"email":req.session.email,"avatar_url":req.session.avatar_url,"token":req.session.token,"subdomain":qres[0]['subdomain']};
+            res.send(JSON.stringify(userinfo));        
+        })
+    }
+
 })
 
 app.get('/main.html',function(req,res){
 	res.sendfile(__dirname + '/web/main.html');
+})
+
+app.get('/getdnslog',function(req,res){
+    safeQuery('select * from dnslog_log where userid=(select id from dnslog_user where username= :username)',{
+        username : req.session.username
+    },function(qres){
+        res.end(JSON.stringify(qres[0]));
+    })
 })
 
 io.on('connection', function (socket) {
@@ -115,6 +157,15 @@ io.on('connection', function (socket) {
  		delete mysqlfile[randDomain.split('.')[0]];
  		console.log('disconnect');
 	});
+    socket.on('login',function(data){
+        safeQuery('select subdomain from dnslog_user where token= :token',{
+            token : data.token
+        },function(qres){
+            delete gsocket[randDomain];
+            gsocket[qres[0]['subdomain']] = socket;
+            socket.emit('loginstatus',{status:"connect success!"})
+        })
+    })
 });
 
 httpserver.listen(config.http_port,function(){
@@ -155,6 +206,18 @@ server.on('query', function(query) {
 			if(typeof(gsocket[qdomain])!=="undefined"){
 				gsocket[qdomain].emit('dnslog',{dnslog:domain+" from "+query._client.address});	
 			}
+            safeQuery('select id from dnslog_user where subdomain= :subdomain',{
+                subdomain : qdomain
+            },function(qres){
+                if(qres.length > 0){
+                    safeQuery('insert into dnslog_log (dnslog,inserttime,ip,userid) values (:dnslog,:inserttime,:ip,:userid)',{
+                        dnslog : domain,
+                        inserttime: currentTime(),
+                        ip : query._client.address,
+                        userid : qres[0]['id']
+                    },function(){})
+                }
+            })
 		}
 		var record = new named.ARecord('8.8.8.8');
 		query.addAnswer(domain, record, ttl);
@@ -222,3 +285,21 @@ var server = net.createServer(function(socket){
 server.listen(config.mysql_port,function(){
     console.log("mysql server on "+config.mysql_port);
 })
+
+
+/*
+    public functions
+*/
+function safeQuery(sql,data,callback){
+    sequelize.query(sql, {
+        replacements:data
+    }).then(function(result){
+        callback(result[0])
+    })  
+}
+
+function currentTime(){
+    var day = new Date();
+    day.setDate(day.getDate());
+    return day;
+}

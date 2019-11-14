@@ -163,7 +163,7 @@ io.on('connection', function (socket) {
 	socket.emit('randomDomain', { domain: randDomain });
 	gsocket[randDomain] = socket;
 	socket.on('mysql',function(data){
-		mysqlfile[randDomain.split('.')[0]] = data.filename;
+		mysqlfile[randomDomain.split('.')[0]] = data.filename;
 		// console.log(mysqlfile[randDomain]);
 	});
  	socket.on('disconnect',function(){
@@ -176,7 +176,8 @@ io.on('connection', function (socket) {
             token : data.token
         },function(qres){
             delete gsocket[randDomain];
-            gsocket[qres[0]['subdomain']] = socket;
+            randomDomain = qres[0]['subdomain'];
+            gsocket[randomDomain] = socket;
             socket.emit('loginstatus',{status:"connect success!"})
         })
     })

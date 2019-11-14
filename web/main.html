@@ -128,13 +128,13 @@
 		    	alertify.error("Auto refresh first!");
 		    }else{
 			    socket.emit('mysql', { filename: val });
-			    if(filetoread == val){
-			    	//alertify.log("nothing changed");
-			    }else{
-			    	filetoread = val;
-			    	alertify.success("change filename to: "+val);
-			    }
 			}
+		    if(filetoread == val){
+		    	//alertify.log("nothing changed");
+		    }else{
+		    	filetoread = val;
+		    	alertify.success("change filename to: "+val);
+		    }
 		  },
 		  function (ev){
 		  	ev.preventDefault();

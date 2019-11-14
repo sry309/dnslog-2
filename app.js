@@ -50,7 +50,9 @@ app.get('/login', function (req, res) {
     res.redirect(302,authURL);
 });
 app.get('/logout', function (req, res) {
-    delete req.session.token;
+    req.session.token = "";
+    req.session.username = "";
+    req.session.email = "";
     res.send('ok');
 });
 
@@ -123,7 +125,7 @@ app.get('/oauth',function(req,res){
 })
 
 app.get('/userinfo',function(req,res){
-    if(typeof(req.session.token) == 'undefined'){
+    if(typeof(req.session.token) == 'undefined' || req.session.token == ""){
         res.send('{}');
     }else{
         safeQuery('select subdomain from dnslog_user where token= :token',{

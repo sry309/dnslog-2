@@ -35,6 +35,15 @@ app.use(session({
         //cookie: { secure: true }   /*secure https这样的情况才可以访问cookie*/
     }))
 
+app.get('/robots.txt',function(req,res){
+    res.set('Content-Type','text/plain');
+    res.send("User-agent: *\r\nDisallow: ");
+})
+
+app.get('/favicon.ico',function(req,res){
+    res.sendfile(__dirname + '/favicon.ico');
+})
+
 app.get('/', function (req, res) {
     res.sendfile(__dirname + '/web/index.html');
 });

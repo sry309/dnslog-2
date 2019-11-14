@@ -140,7 +140,7 @@ app.get('/getdnslog',function(req,res){
     safeQuery('select * from dnslog_log where userid=(select id from dnslog_user where username= :username)',{
         username : req.session.username
     },function(qres){
-        res.end(JSON.stringify(qres[0]));
+        res.end(JSON.stringify(qres));
     })
 })
 

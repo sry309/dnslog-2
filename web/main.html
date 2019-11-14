@@ -11,10 +11,11 @@ var userinfo;
 $.get('/userinfo',function(res){
 	userinfo = JSON.parse(res);
 	if(typeof(userinfo['name']) == 'undefined'){
-		location = "/login";
+		location.href = "/login";
+	}else{
+		temp = "<img src='"+userinfo['avatar_url']+"' />" + userinfo['name'];
+		document.write(temp);
 	}
-	temp = "<img src='"+userinfo['avatar_url']+"' />" + userinfo['name'];
-	document.write(temp);
 });
 </script>
 

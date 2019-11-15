@@ -170,6 +170,7 @@ app.get('/cleardnslog',function(req,res){
 
 io.on('connection', function (socket) {
 	var randDomain = getRandomDomain(5);
+    var loginDomain;
 	socket.emit('randomDomain', { domain: randDomain });
 	gsocket[randDomain] = socket;
 	socket.on('mysql',function(data){
@@ -179,7 +180,9 @@ io.on('connection', function (socket) {
  	socket.on('disconnect',function(){
  		delete gsocket[randDomain];
  		delete mysqlfile[randDomain.split('.')[0]];
- 		console.log('disconnect');
+        delete gsocket[loginDomain];
+ 		console.log('disconnect:\n'+randDomain);
+        console.log(loginDomain)
 	});
     socket.on('login',function(data){
         safeQuery('select subdomain from dnslog_user where token= :token',{
@@ -188,10 +191,12 @@ io.on('connection', function (socket) {
             delete gsocket[randDomain];
             randomDomain = qres[0]['subdomain'];
             gsocket[randomDomain] = socket;
+            loginDomain = qres[0]['subdomain'];
             socket.emit('loginstatus',{status:"connect success!"})
         })
     })
 });
+
 
 httpserver.listen(config.http_port,function(){
 	console.log('HTTP server started on port '+config.http_port);

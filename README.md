@@ -18,11 +18,11 @@ node app.js
 ```
 
 set dns record
-`set ns record to your webserver`
 
 |subdomain|type|value|
 |---|---|---|
-|l.dnslog.io|ns|dnslog.io|
+|l.dnslog.io|ns|ns.dnslog.io|
+|ns.dnslog.io|a|[your web server ip]|
 
 数据库结构
 ```

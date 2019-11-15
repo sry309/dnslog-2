@@ -1,10 +1,16 @@
 var config = {
 	"http_port":80,
-	"mysql_port":3306,
+	"mysql_port":3308,
 	"dns_port":53,
 	"domain":"l.dnslog.io",
 	"oauth_id":"",
 	"oauth_secret":"",
-	"oauth_redirect_uri":""
+	"oauth_redirect_uri":"",
+	"mail":{
+		"host" : 'smtp.ym.163.com',
+     	"port" : 25,
+      	"user" : 'notify@dnslog.io',
+      	"pass" : ''
+	}
 };
 module.exports = config;

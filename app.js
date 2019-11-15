@@ -14,6 +14,7 @@ var https = require('https');
 var session = require("express-session");
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('sqlite:db/data.db')
+var mail = require('./mail');
 
 
 /*
@@ -239,7 +240,18 @@ server.on('query', function(query) {
                         inserttime: currentTime(),
                         ip : query._client.address,
                         userid : qres[0]['id']
-                    },function(){})
+                    },function(){
+                        if(typeof(gsocket[qdomain]) == "undefined"){
+                             safeQuery('select email from dnslog_user where subdomain= :subdomain',{
+                                subdomain : qdomain
+                            },function(qres){
+                                if(qres[0]['email'] !== ""){
+                                    var mailcontent = "You have a new dnslog: \n" + domain + "\nFrom ip: " + query._client.address
+                                    mail.send(qres[0]['email'],"【NEW DNSLOG】" + domain,mailcontent)
+                                }
+                            })
+                        }
+                    })
                 }
             })
 		}

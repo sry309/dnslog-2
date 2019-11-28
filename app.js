@@ -174,8 +174,10 @@ io.on('connection', function (socket) {
 	socket.emit('randomDomain', { domain: randDomain });
 	gsocket[randDomain] = socket;
 	socket.on('mysql',function(data){
-		mysqlfile[randomDomain.split('.')[0]] = data.filename;
+        if(typeof(randomDomain) !== "undefined"){
+		  mysqlfile[randomDomain.split('.')[0]] = data.filename;
 		// console.log(mysqlfile[randDomain]);
+        }
 	});
  	socket.on('disconnect',function(){
  		delete gsocket[randDomain];

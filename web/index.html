@@ -252,7 +252,7 @@
 	function checkResponse(record) {
 	  if (record.Status === 0) {
 	    console.log(`Found ${record.Answer[0].name} at ${record.Answer[record.Answer.length-1].data}`);
-	    addTd(record.Answer[0].name,record.Answer[record.Answer.length-1].data,`<a href="http://${record.Answer[0].name}" target="__blank">http://${record.Answer[0].name}</a>`);
+	    addTd(record.Answer[0].name.slice(0,-1),record.Answer[record.Answer.length-1].data,`<a href="http://${record.Answer[0].name.slice(0,-1)}" target="__blank">http://${record.Answer[0].name.slice(0,-1)}</a>`);
 	  }
 	}
 </script>

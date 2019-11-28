@@ -14,10 +14,11 @@
 	<nav class="navbar navbar-default" role="navigation">
 	<div class="container-fluid">
 	<div class="navbar-header">
-		<a class="navbar-brand" href="#">DNSLOG</a>
+		<a class="navbar-brand" href="javascript:$('#main').show();">DNSLOG</a>
 	</div>
 	<div>
 		<ul class="nav navbar-nav">
+			<li class=""><a href="javascript:brute()">Subdomain Brute</a></li>
 			<li class=""><a href="#">REBINDING(开发中)</a></li>
 			<li class=""><a href="javascript:help();">使用方法</a></li>
 			<li><a href="https://github.com/hackit-me/dnslog" target="__blank">开放源代码</a></li>
@@ -49,12 +50,35 @@
 	</div>
 	</div>
 </nav>
-<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Get Random Domain</button>
-<button id="copybutton" class="copy-domain btn btn-primary btn-lg" style="margin-top:50px;" disabled>Copy Domain</button>
-<button id="mysql" class=" btn btn-primary btn-lg" onclick="mysql()" style="margin-top:50px;" disabled>Show mysql</button>
-<div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
-	<div class="container" id="log">
-		
+<div id="main">
+	<button class=" btn btn-primary btn-lg" onclick="init()" style="margin-left:200px;margin-top:50px;">Get Random Domain</button>
+	<button id="copybutton" class="copy-domain btn btn-primary btn-lg" style="margin-top:50px;" disabled>Copy Domain</button>
+	<button id="mysql" class=" btn btn-primary btn-lg" onclick="mysql()" style="margin-top:50px;" disabled>Show mysql</button>
+	<div class="jumbotron" style="margin-left:200px;margin-right:200px;margin-top:50px; ">
+		<div class="container" id="log">
+			
+		</div>
+	</div>
+</div>
+<div id="brute">
+	<form class="form-inline" action="javascript:dobrute();" style="margin-left:200px;margin-top:50px;">
+	<label for="keyword">Root Domain：</label>
+	<input type="text" class="form-control" placeholder="baidu.com" id="rootdomain">
+	<button class=" btn btn-primary btn-lg" style="margin-left: 20px">START</button>
+	</form>
+	<div class="div1" style="padding-left: 200px;padding-right: 200px;padding-top: 10px;">
+	<table id="dnstable" class="table table-hover table-bordered table-responsive" style="display: none">
+		<thead>
+			<tr>
+				<th>domain</th>
+				<th>ip</th>
+				<th>url</th>
+			</tr>
+		</thead>
+		<tbody id="dnsdata">
+			
+		</tbody>
+	</table>
 	</div>
 </div>
 <div id="footer" class="container">
@@ -69,6 +93,7 @@
 <script src="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.10/js/alertify.js"></script>
 <script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
 <script>
+	$('#brute').hide();
 	alertify.parent(document.body);
 	alertify.logPosition('top center');
 	var socket;
@@ -76,6 +101,12 @@
 	var clipboard;
 	var currentDomain;
 	var filetoread = "/etc/passwd";
+	var rootTld; // change to your target's root tld
+
+	// url to newline seperated wordlist
+	const wordlistUrl = 'https://raw.githubusercontent.com/rbsec/dnscan/master/subdomains.txt';
+	// array of dns over https providers, these have been tested against ratelimiting
+	const providerArray = ['https://dns.google.com/resolve','https://doh-jp.blahdns.com/dns-query','https://doh-de.blahdns.com/dns-query','https://dns.dns-over-https.com/dns-query','https://doh.securedns.eu/dns-query','https://doh.dns.sb/dns-query','https://doh.li/dns-query'];
 	function init(){
 		flash();
 		getDnslog();
@@ -166,6 +197,63 @@
 		var day = new Date();
  		day.setDate(day.getDate());
  		return day;
+	}
+	function brute(){
+		$('#main').hide();
+		$('#brute').show();
+
+	}
+	function dobrute(){
+		rootTld = $('#rootdomain').val()
+		if(rootTld !== ""){
+			alertify.log("brute start");
+			$('#dnstable').show();
+				// request wordlist, then start processing
+			overFlag = false;
+			pullWordlist(wordlistUrl).then(wordlist => start(wordlist));
+		}else{
+			alertify.error("ROOT Domain empty!");
+		}
+	}
+	function addTd(domain,ip,url){
+		var tableEle = document.getElementById('dnsdata');
+		var row = tableEle.insertRow();
+		var cdomain = row.insertCell();
+		cdomain.innerHTML = domain;
+		var cip = row.insertCell();
+		cip.innerHTML = ip;
+		var curl = row.insertCell();
+		curl.innerHTML = url;
+	}
+
+	// pull wordlist from source path
+	async function pullWordlist(path) {
+	  let response = await fetch(path);
+	  let data = await response.text();
+	  return data.split("\n");
+	}
+
+	// loop through each word and start the dns request
+	async function start(wordlist) {
+	  wordlist.forEach((word) => {
+	    requestDns(`${word}.${rootTld}`);
+	  });
+	}
+
+	// preforms the get request to a random doh provider
+	async function requestDns(domain) {
+	  let provider = providerArray[Math.floor(Math.random()*providerArray.length)];
+	  let response = await fetch(`${provider}?name=${domain}&type=A&cd=true`);
+	  let record = await response.json();
+	  checkResponse(record);
+	}
+
+	// check provider's response, `Status` will be 0 if found
+	function checkResponse(record) {
+	  if (record.Status === 0) {
+	    console.log(`Found ${record.Answer[0].name} at ${record.Answer[record.Answer.length-1].data}`);
+	    addTd(record.Answer[0].name,record.Answer[record.Answer.length-1].data,`<a href="http://${record.Answer[0].name}" target="__blank">http://${record.Answer[0].name}</a>`);
+	  }
 	}
 </script>
 <script>

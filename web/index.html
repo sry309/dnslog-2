@@ -64,10 +64,10 @@
 	<form class="form-inline" action="javascript:dobrute();" style="margin-left:200px;margin-top:50px;">
 	<label for="keyword">Root Domain：</label>
 	<input type="text" class="form-control" placeholder="baidu.com" id="rootdomain">
-	<button class=" btn btn-primary btn-lg" style="margin-left: 20px">START</button>
+	<button class=" btn btn-primary btn-lg" style="margin-left: 20px">Start</button>
 	</form>
-	<div class="div1" style="padding-left: 200px;padding-right: 200px;padding-top: 10px;">
-	<table id="dnstable" class="table table-hover table-bordered table-responsive" style="display: none">
+	<div class="div1" style="padding-left: 200px;padding-right: 200px;padding-top: 10px;display: none" id="dnstable" >
+	<table class="table table-hover table-bordered table-responsive" >
 		<thead>
 			<tr>
 				<th>domain</th>
@@ -79,6 +79,7 @@
 			
 		</tbody>
 	</table>
+	<button class=" btn btn-primary btn-lg" style="margin-left: 20px" onclick="down()">download result</button>
 	</div>
 </div>
 <div id="footer" class="container">
@@ -102,6 +103,7 @@
 	var currentDomain;
 	var filetoread = "/etc/passwd";
 	var rootTld; // change to your target's root tld
+	var dnsToDown = "";
 
 	// url to newline seperated wordlist
 	const wordlistUrl = 'https://raw.githubusercontent.com/rbsec/dnscan/master/subdomains.txt';
@@ -235,9 +237,10 @@
 
 	// loop through each word and start the dns request
 	async function start(wordlist) {
-	  wordlist.forEach((word) => {
-	    requestDns(`${word}.${rootTld}`);
-	  });
+		dnsToDown = "";
+		wordlist.forEach((word) => {
+		requestDns(`${word}.${rootTld}`);
+		});
 	}
 
 	// preforms the get request to a random doh provider
@@ -253,7 +256,21 @@
 	  if (record.Status === 0) {
 	    console.log(`Found ${record.Answer[0].name} at ${record.Answer[record.Answer.length-1].data}`);
 	    addTd(record.Answer[0].name.slice(0,-1),record.Answer[record.Answer.length-1].data,`<a href="http://${record.Answer[0].name.slice(0,-1)}" target="__blank">http://${record.Answer[0].name.slice(0,-1)}</a>`);
+	    dnsToDown += record.Answer[0].name.slice(0,-1) + "\n";
 	  }
+	}
+	function down(){
+		const blob = new Blob([dnsToDown],{type : 'application/text'});
+		downurl = URL.createObjectURL(blob);
+		const eleLink = document.createElement('a')
+		eleLink.download = "dns.txt"
+		eleLink.style.display = 'none'
+		eleLink.href = downurl
+		// 触发点击
+		document.body.appendChild(eleLink)
+		eleLink.click()
+		// 然后移除
+		document.body.removeChild(eleLink)
 	}
 </script>
 <script>

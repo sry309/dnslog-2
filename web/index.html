@@ -106,7 +106,7 @@
 	var dnsToDown = "";
 
 	// url to newline seperated wordlist
-	const wordlistUrl = 'https://raw.githubusercontent.com/rbsec/dnscan/master/subdomains.txt';
+	const wordlistUrl = 'https://raw.githubusercontent.com/hackit-me/dnslog/master/examples/subdomain.js';
 	// array of dns over https providers, these have been tested against ratelimiting
 	const providerArray = ['https://dns.google.com/resolve','https://doh-jp.blahdns.com/dns-query','https://doh-de.blahdns.com/dns-query','https://dns.dns-over-https.com/dns-query','https://doh.securedns.eu/dns-query','https://doh.dns.sb/dns-query','https://doh.li/dns-query'];
 	function init(){
@@ -262,15 +262,15 @@
 	function down(){
 		const blob = new Blob([dnsToDown],{type : 'application/text'});
 		downurl = URL.createObjectURL(blob);
-		const eleLink = document.createElement('a')
-		eleLink.download = "dns.txt"
-		eleLink.style.display = 'none'
-		eleLink.href = downurl
+		const eleLink = document.createElement('a');
+		eleLink.download = `${rootTld}.txt`;
+		eleLink.style.display = 'none';
+		eleLink.href = downurl;
 		// 触发点击
-		document.body.appendChild(eleLink)
-		eleLink.click()
+		document.body.appendChild(eleLink);
+		eleLink.click();
 		// 然后移除
-		document.body.removeChild(eleLink)
+		document.body.removeChild(eleLink);
 	}
 </script>
 <script>

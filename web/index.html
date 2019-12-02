@@ -108,7 +108,8 @@
 	// url to newline seperated wordlist
 	const wordlistUrl = 'https://raw.githubusercontent.com/hackit-me/dnslog/master/examples/subdomains.txt';
 	// array of dns over https providers, these have been tested against ratelimiting
-	const providerArray = ['https://dns.google.com/resolve','https://doh-jp.blahdns.com/dns-query','https://doh-de.blahdns.com/dns-query','https://dns.dns-over-https.com/dns-query','https://doh.securedns.eu/dns-query','https://doh.dns.sb/dns-query','https://doh.li/dns-query'];
+	//delete 'https://dns.google.com/resolve',
+	const providerArray = ['https://doh-jp.blahdns.com/dns-query','https://doh-de.blahdns.com/dns-query','https://dns.dns-over-https.com/dns-query','https://doh.securedns.eu/dns-query','https://doh.dns.sb/dns-query','https://doh.li/dns-query'];
 	function init(){
 		flash();
 		getDnslog();
@@ -227,6 +228,9 @@
 		var curl = row.insertCell();
 		curl.innerHTML = url;
 	}
+	function isIp(ip){
+		return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip);
+	}
 
 	// pull wordlist from source path
 	async function pullWordlist(path) {
@@ -252,10 +256,18 @@
 	}
 
 	// check provider's response, `Status` will be 0 if found
+	//record.Answer[record.Answer.length-1].data
 	function checkResponse(record) {
 	  if (record.Status === 0) {
 	    console.log(`Found ${record.Answer[0].name} at ${record.Answer[record.Answer.length-1].data}`);
-	    addTd(record.Answer[0].name.slice(0,-1),record.Answer[record.Answer.length-1].data,`<a href="http://${record.Answer[0].name.slice(0,-1)}" target="__blank">http://${record.Answer[0].name.slice(0,-1)}</a>`);
+	    var dnslist = record.Answer[0].name + "=>";
+	    for(i=0;i<record.Answer.length;i++){
+	    	if(!isIp(record.Answer[i].data)){
+	    		dnslist += record.Answer[i].data;
+	    	}
+	    }
+	    dnslist += "=>" + record.Answer[record.Answer.length-1].data;
+	    addTd(record.Answer[0].name.slice(0,-1),dnslist,`<a href="http://${record.Answer[0].name.slice(0,-1)}" target="__blank">http://${record.Answer[0].name.slice(0,-1)}</a>`);
 	    dnsToDown += record.Answer[0].name.slice(0,-1) + "\n";
 	  }
 	}
